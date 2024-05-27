@@ -1,0 +1,17 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Semestrální práce ZPK4";
+}
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+    <p>
+        Tato semestrální práce se zaobírá zobrazením grafu - monitoring výroby.<br />
+        Využila jsem k tomu lokální databázi pro vkládání dat.<br />
+        Po vložení se data updatujou do grafu bez znovu načtení stránky pomocí Ajaxu.<br />
+        Původně měla být napsaná v Blazoru, ale to se mi nedařilo rozjet.
+    </p>
+
+    <a class="btn btn-outline-info" asp-area="" asp-page="/Graph">Graph</a>
+</div>
