@@ -12,51 +12,38 @@
 
 <h3>Add Production Data</h3>
 
-<form id="dataForm" method="post">
-    <div>
-        <label>Final Target:</label>
-        <input type="number" asp-for="NewProduction.FinalTarget" />
-    </div>
-    <div>
-        <label>Now Target:</label>
-        <input type="number" asp-for="NewProduction.NowTarget" />
-    </div>
-    <div>
-        <label>Result:</label>
-        <input type="number" asp-for="NewProduction.Result" />
-    </div>
-    <button type="submit">Submit</button>
+<form id="dataForm" asp-antiforgery="true">
+    <div class="col-4">
+        <div class="form-group">
+            <label>Final Target:</label>
+            <input type="number" asp-for="NewProduction.FinalTarget" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Now Target:</label>
+            <input type="number" asp-for="NewProduction.NowTarget" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Result:</label>
+            <input type="number" asp-for="NewProduction.Result" class="form-control" />
+        </div>
+    </div><br />
+    <button class="btn btn-outline-info" type="submit">Submit</button><hr />
+
 </form>
+
+<p>
+    Final target: Cíl, který má výroba nastavený na začátku výroby (ten se ale během výroby může změnit).<br />
+    Now Target: Ideální výsledek, kterého by se výroba měla snažit držet (aby splnila plán).<br />
+    Result: Reálný výsledek. <br />
+</p>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script>
-        // Custom plugin to draw the current time line
-        const currentTimeLinePlugin = {
-            id: 'currentTimeLine',
-            beforeDraw: (chart) => {
-                const ctx = chart.ctx;
-                const xScale = chart.scales['x'];
-                const yScale = chart.scales['y'];
-                const currentTime = new Date('@Model.CurrentTime');
-                const currentPixel = xScale.getPixelForValue(currentTime);
-
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(currentPixel, yScale.top);
-                ctx.strokeStyle = 'red';
-                ctx.lineWidth = 2;
-                ctx.lineTo(currentPixel, yScale.bottom);
-                ctx.stroke();
-                ctx.restore();
-            }
-        };
-
         document.addEventListener('DOMContentLoaded', function () {
-            var shiftStart = new Date('@Model.ShiftStart');
-            var shiftEnd = new Date('@Model.ShiftEnd');
-            var currentTime = new Date('@Model.CurrentTime');
+            var shiftStart = new Date(@Html.Raw(Json.Serialize(Model.ShiftStart)));
+            var shiftEnd = new Date(@Html.Raw(Json.Serialize(Model.ShiftEnd)));
 
             var ctx = document.getElementById('productionChart').getContext('2d');
             var chart = new Chart(ctx, {
@@ -115,12 +102,8 @@
                                 text: 'Values'
                             }
                         }
-                    },
-                    plugins: {
-                        currentTimeLine: true
                     }
-                },
-                plugins: [currentTimeLinePlugin]
+                }
             });
 
             document.getElementById('dataForm').addEventListener('submit', function (event) {
@@ -149,7 +132,6 @@
                         chart.data.datasets[2].data = data.resultData;
                         chart.options.scales.x.min = new Date(data.shiftStart);
                         chart.options.scales.x.max = new Date(data.shiftEnd);
-                        chart.options.plugins.currentTimeLine = true;
                         chart.update();
                     })
                     .catch(error => console.error('Error:', error));

@@ -17,13 +17,13 @@ public class GraphModel : PageModel
         _context = context;
     }
 
-    public List<string> Labels { get; set; } = new List<string>();
-    public List<int> FinalTargetData { get; set; } = new List<int>();
-    public List<int> NowTargetData { get; set; } = new List<int>();
-    public List<int> ResultData { get; set; } = new List<int>();
+    public List<string> Labels { get; set; }
+    public List<int> FinalTargetData { get; set; }
+    public List<int> NowTargetData { get; set; }
+    public List<int> ResultData { get; set; }
+    public string CurrentTime { get; set; }
     public string ShiftStart { get; set; }
     public string ShiftEnd { get; set; }
-    public string CurrentTime { get; set; }
 
     [BindProperty]
     public Production NewProduction { get; set; }
@@ -33,16 +33,16 @@ public class GraphModel : PageModel
         await LoadDataAsync();
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostAsync([FromBody] Production newProduction)
     {
         if (!ModelState.IsValid)
         {
-            return Page();
+            return BadRequest(ModelState);
         }
 
-        NewProduction.Date = DateTime.Now;
+        newProduction.Date = DateTime.Now;
 
-        _context.Produces.Add(NewProduction);
+        _context.Produces.Add(newProduction);
         await _context.SaveChangesAsync();
 
         await LoadDataAsync();
@@ -54,8 +54,7 @@ public class GraphModel : PageModel
             nowTargetData = NowTargetData,
             resultData = ResultData,
             shiftStart = ShiftStart,
-            shiftEnd = ShiftEnd,
-            currentTime = CurrentTime
+            shiftEnd = ShiftEnd
         });
     }
 
@@ -79,7 +78,7 @@ public class GraphModel : PageModel
             if (now.Hour >= 22)
             {
                 start = new DateTime(now.Year, now.Month, now.Day, 22, 0, 0);
-                end = start.AddDays(1).AddHours(6); // till 6 AM next day
+                end = start.AddDays(1).AddHours(6);
             }
             else
             {
@@ -90,7 +89,6 @@ public class GraphModel : PageModel
 
         ShiftStart = start.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
         ShiftEnd = end.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
-        CurrentTime = now.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
 
         var productions = await _context.Produces
             .Where(p => p.Date >= start && p.Date <= end)
